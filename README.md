@@ -1,4 +1,4 @@
-# JalRakshak - Water Resilience Digital Twin
+# SWIM - Water Resilience Digital Twin
 ### Cascading Failure Simulator for Rural Water Infrastructure
 
 > **MIT Manipal Tech Tatva 2026 - Team MKCrusaders26**
@@ -25,7 +25,7 @@ JalRakshak turns that into a proactive question: given this failure, here is exa
 
 ---
 
-## Why This Is Solvable Right Now (The 2026 Gap)
+## Why This Is Solvable Right Now 
 
 The missing piece was never data. It was the **dependency model** sitting on top of existing data.
 
