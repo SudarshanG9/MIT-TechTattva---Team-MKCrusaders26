@@ -49,7 +49,7 @@ export default function Step1Landing({ onLoad }: Step1Props) {
               color: "#e2e8f0",
             }}
           >
-            JalRakshak
+            SWIM
             <br />
             <span
               style={{

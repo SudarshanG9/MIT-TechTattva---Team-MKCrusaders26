@@ -7,7 +7,7 @@
 
 ## The One-Sentence Pitch
 
-JalRakshak answers the question no existing water monitoring system can: **"Pump P1 is OFF -- what does that mean for the 6,400 people downstream, how many hours do they have before their taps run dry?"**
+SWIM answers the question no existing water monitoring system can: **"Pump P1 is OFF -- what does that mean for the 6,400 people downstream, how many hours do they have before their taps run dry, and what should a block engineer fix first with a Rs.10 lakh O&M budget?"**
 
 ---
 
@@ -17,15 +17,15 @@ India's Jal Jeevan Mission has geo-tagged **~6 crore rural water assets** across
 
 **What they cannot see is what comes next.**
 
-When a power feeder trips and a pump stops, the overhead tank keeps feeding water downstream -- draining silently. A PHC might lose supply in 4 hours. A village with no alternate source might go 3 days without water.
+When a power feeder trips and a pump stops, the overhead tank keeps feeding water downstream -- draining silently. A PHC might lose supply in 4 hours. A village with no alternate source might go 3 days without water. A school might close. This is not visible from any existing dashboard.
 
 The standard response today is reactive: someone's tap runs dry, they file a complaint, the engineer dispatches a repair team. **The consequence has already happened.**
 
-JalRakshak turns that into a proactive question: given this failure, here is exactly who is affected, in what order, how fast, and what the cheapest fix is -- **before** the taps run dry.
+SWIM turns that into a proactive question: given this failure, here is exactly who is affected, in what order, how fast, and what the cheapest fix is -- **before** the taps run dry.
 
 ---
 
-## Why This Is Solvable Right Now 
+## Why This Is Solvable Right Now (The 2026 Gap)
 
 The missing piece was never data. It was the **dependency model** sitting on top of existing data.
 
@@ -36,11 +36,11 @@ The missing piece was never data. It was the **dependency model** sitting on top
 | Census population-per-habitation data | Which villages, PHCs, and schools lose water first |
 | Block engineers who know their schemes | A tool that converts their local knowledge into ranked priorities |
 
-JalRakshak builds that missing dependency layer -- a typed graph of how every asset in a water scheme depends on every other -- and runs a cascade simulation on top of it. **No SCADA sensors. No IoT retrofit needed.**
+SWIM builds that missing dependency layer -- a typed graph of how every asset in a water scheme depends on every other -- and runs a cascade simulation on top of it. **No SCADA sensors. No IoT retrofits. No new data collection.** Just a model built from what JJM already has.
 
 ---
 
-## What JalRakshak Actually Does
+## What SWIM Actually Does
 
 ```
 Source -> Pump -> Feeder (power) -> Overhead Tank -> Pipeline Zone -> Village / PHC / School
@@ -48,7 +48,7 @@ Source -> Pump -> Feeder (power) -> Overhead Tank -> Pipeline Zone -> Village / 
 
 This is not a monitoring dashboard. It is a **what-if simulator**.
 
-You select a failure -- a power feeder trips, a pump breaks down, a borewell yield drops -- and JalRakshak propagates the consequence through the full dependency chain:
+You select a failure -- a power feeder trips, a pump breaks down, a borewell yield drops -- and SWIM propagates the consequence through the full dependency chain:
 
 1. The pump stops. Inflow to the tank drops to zero.
 2. The tank drains at the demand rate of everything it feeds (55 LPCD x population served).
@@ -59,35 +59,9 @@ You select a failure -- a power feeder trips, a pump breaks down, a borewell yie
 
 ### The Core Technical Insight
 
-A bridge failure is felt immediately. A pump failure is not -- the tank buys time. **That buffer is exactly what this system computes, and it is the single sentence no other water dashboard currently answers.**
+A bridge failure is felt immediately. A pump failure is not -- the tank buys time. **That buffer is exactly what this system computes, and it is the single sentence no other water dashboard currently produces.**
 
-> "Pump P1 is off. OHT1 will reach critical storage level in **6 hours**. Village Chakur (2,100 people) and PHC Chakur (serving 6,400) will lose water supply. No redundant pump exists. Intervention priority: Install standby pump -- Rs.3-7 Lakh."
-
----
-
-## System Overview
-
-JalRakshak provides a complete digital twin of rural water infrastructure -- from data ingestion through cascade simulation to intervention planning. Here's the system in action:
-
-### Landing & Scheme Selection
-Engineers start by selecting their water scheme. The system loads the full network graph with all asset dependencies precomputed.
-
-![Landing and Scheme Selection](image1)
-
-### Interactive Network Map & Asset Inspector
-Every asset is pinned at real GPS coordinates. Clicking any node opens the Asset Inspector: criticality score, connected neighbours, and data provenance. Dependencies flagged as uncertain are highlighted for human correction.
-
-![Interactive Network Map](image2)
-
-### Dependency Review & Calibration
-The system surfaces inferred pump-to-feeder dependencies with confidence scores. Engineers confirm or correct each edge. The Calibration Score improves with every correction, making the digital twin progressively more accurate.
-
-![Dependency Review Interface](image3)
-
-### Failure Scenario Selection & Cascade Simulation
-Choose a failure type (feeder trip, pipeline burst, source depletion) and watch the cascade propagate round-by-round on the live map. Node colours shift from green → amber → red as assets move through stressed → critical → failed states.
-
-![Failure Scenario Cards](image4)
+> "Pump P1 is off. OHT1 will reach critical storage level in **6 hours**. Village Chakur (2,100 people) and PHC Chakur (serving 6,400) will lose water supply. No redundant pump exists. Intervention priority: **CRITICAL**."
 
 ---
 
@@ -95,31 +69,52 @@ Choose a failure type (feeder trip, pipeline burst, source depletion) and watch 
 
 ### 11-Stage Processing Pipeline
 
-![JalRakshak Architecture](public/architecture.jpg)
+```mermaid
+flowchart TD
+    DS["Data sources\nJJM/IMIS scheme data, PHED GIS,\nCensus, UDISE+, health facility\nregistries, CGWB groundwater,\nexisting IoT telemetry where deployed"]
 
-| Stage | What it does | Key standard / source |
-|---|---|---|
-| **1. Data Fusion** | Merges JJM IMIS, PHED registries, DISCOM feeder data, CGWB groundwater, Census | JJM IMIS, State PHED/RWS |
-| **2. Source-to-Tap Graph** | Builds a typed real-coordinate graph: source -> pump -> tank -> pipeline zone -> demand nodes | Geographic + scheme data |
-| **3. Dependency Inference** | Infers which feeder powers which pump using proximity + routing; confidence-scored; human-correctable | KD-tree + Dijkstra |
-| **4. Disruption Coupling** | Fail power / fail pump / fail source / fail pipeline -- any node, any intensity, instant or gradual | Swappable interface |
-| **5. Tolerance Thresholds** | Per-asset fragility: pump dry-run voltage tolerance, pipe age-material leak curves | PHED O&M norms |
-| **6. Load & Storage Init** | Sets demand at 55 LPCD x population; tank capacity at 25-35% of daily demand | JJM norm + CPHEEO Manual |
-| **7. Cascade Engine + Depletion Timer** | Round-by-round propagation; computes t* per tank; Two-Axis Monte Carlo for uncertainty | Domain-adapted model |
-| **8. Criticality Analytics** | Ranks by person-days of disrupted supply; flags single-point-of-failure schemes | Population x hours metric |
-| **9. Intervention Prioritisation** | Binary-search minimum redundancy sizing: how much extra storage/pump capacity prevents failure | Monotonic binary search |
-| **10. Scenario Comparison** | Paired runs sharing random draws -- "with vs without intervention" -- statistically clean comparison | Common random numbers |
-| **11. Calibration Engine** | VWSC/block-engineer corrections and JJM status updates improve inference confidence over time | Beta-Binomial update |
+    S1["Stage 1\nFuse + tag provenance"]
 
-### Cascade Failure Flow
+    S2["Stage 2\nBuild the source-to-tap graph\nsource, pump, feeder, tank,\npipeline zone, village, school, PHC"]
 
-![Cascade Propagation Flowchart](public/cascade_flow.jpg)
+    S3["Stage 3\nInfer dependencies\nwhich pump feeds which tank,\nconfidence-scored"]
 
----
+    S4["Stage 4\nFailure coupling\npump / power / source / pipeline,\nor a manual what-if"]
+
+    S5["Stage 5\nEquipment + source fragility\nreliability curves, not hazard curves"]
+
+    S6["Stage 6\nDemand + storage initialisation\npopulation x LPCD vs tank volume"]
+
+    S7["Stage 7\nCascade engine\nsymbolic + two-axis Monte Carlo,\nnow on a time axis, in hours"]
+
+    S8["Stage 8\nCriticality, articulation points,\ntime-to-criticality ranking"]
+
+    S9["Stage 9\nNeural surrogate, deferred"]
+
+    S10["Stage 10\nScenario comparison\npaired, common random numbers"]
+
+    S11["Stage 11\nCalibration engine\ncloses the loop against O&M\ncomplaint logs and IoT ground truth"]
+
+    DS --> S1
+    S1 --> S2
+    S2 --> S3
+    S3 --> S4
+    S4 --> S5
+    S5 --> S6
+    S6 --> S7
+    S7 --> S8
+    S7 --> S9
+    S8 --> S10
+    S9 --> S11
+    S10 --> S11
+    S11 -->|calibration feedback| S3
+```
+
+
 
 ## Prototype -- What The Current Demo Shows
 
-> **Important note:** The current prototype is a **hardcoded front-end demo** built for MIT Manipal Tech Tatva 2026. All data (nodes, edges, scenarios, cascade timelines) is pre-loaded from static TypeScript files. The production version will fetch live data from APIs and databases.
+> **Important note:** The current prototype is a **hardcoded front-end demo** built for MIT Manipal Tech Tatva 2026. All data (nodes, edges, scenarios, cascade timelines) is pre-loaded from static TypeScript files representing the **Chakur Block, Latur District, Maharashtra** JJM water scheme. There is no live API, no database, and no real-time sensor feed. The prototype demonstrates the full 7-step user flow with realistic data to validate the concept and interface design. A production version would connect to the JJM IMIS API and a live dependency inference engine.
 
 | Step | Screen | What it demonstrates |
 |---|---|---|
@@ -137,45 +132,23 @@ Choose a failure type (feeder trip, pipeline burst, source depletion) and watch 
 
 Everything used is **free, open-source, and production-ready**.
 
-### Frontend Framework
-
-| Tool | What it does | Why we chose it |
-|---|---|---|
-| **Next.js 14** | React framework with page routing | Fast, industry standard, SSR support |
-| **TypeScript** | Typed JavaScript | Catches bugs at compile time -- critical for simulation logic |
-| **Tailwind CSS** | Utility CSS classes | Rapid, consistent styling |
-
-### Map & Visualisation
-
-| Tool | What it does | Why we chose it |
-|---|---|---|
-| **Leaflet + react-leaflet** | Interactive maps with real coordinates | Open-source, lightweight, OpenStreetMap tiles |
-| **OpenStreetMap** | Base map tiles | Free, no API key needed |
-| **SVG DivIcons** | Custom asset markers (pump, tank, borewell icons) | Renders at any zoom level |
-| **CSS Polylines** | Pipe and dependency edge rendering | Drawn natively on the map canvas |
-
-### Simulation Logic
-
-| Tool | What it does | Why we chose it |
-|---|---|---|
-| **Static TypeScript data files** | `nodes.ts`, `edges.ts`, `scenarios.ts` -- all scheme data | Hardcoded for prototype; swappeable with API calls in production |
-| **`cascadeEngine.ts`** | Round-by-round cascade propagation + depletion timer | Custom logic, ~200 lines, runs client-side in <1ms per round |
-| **`statusUtils.ts`** | Maps node types to colours, labels, and icon styles | Centralised design system for the map layer |
-
-### Fonts & Icons
-
-| Tool | What it does |
-|---|---|
-| **Lucide React** | Clean SVG icon set for UI elements |
-| **Google Fonts -- Inter** | Primary typeface |
-
-### Development & Deployment
-
-| Tool | What it does |
-|---|---|
-| **npm / Node.js 18+** | Package management and dev server |
-| **`next dev`** | Local development server at `localhost:3000` |
-| **Vercel** | Zero-config deployment target for Next.js |
+| Category | Tool | Version | Role |
+|---|---|---|---|
+| **Framework** | Next.js | 14.2.5 | React framework — page routing, SSR, API routes |
+| **Language** | TypeScript | ^5 | Typed JavaScript — compile-time safety for simulation logic |
+| **Styling** | Tailwind CSS | ^3.4.1 | Utility-first CSS — rapid, consistent component styling |
+| **UI Runtime** | React | ^18 | Component model and state management |
+| **Maps** | Leaflet | ^1.9.4 | Interactive geo-map rendering on OpenStreetMap tiles |
+| **Maps (React)** | react-leaflet | ^5.0.0 | React wrapper for Leaflet — declarative map components |
+| **Charts** | Recharts | ^3.10.1 | SVG charting library — impact dashboards and scenario comparisons |
+| **Icons** | Lucide React | ^1.46.0 | Clean SVG icon set for all UI elements |
+| **Fonts** | Google Fonts — Inter | latest | Primary typeface |
+| **Type Defs** | @types/leaflet | ^1.9.22 | TypeScript types for Leaflet |
+| **Linting** | ESLint + eslint-config-next | ^8 / 14.2.5 | Code quality enforcement |
+| **Build Tool** | PostCSS | ^8 | CSS processing pipeline for Tailwind |
+| **Runtime** | Node.js | 18+ | Dev server and build environment |
+| **Package Mgr** | npm | 9+ | Dependency management |
+| **Deployment** | Vercel | — | Zero-config Next.js hosting |
 
 ---
 
@@ -210,7 +183,7 @@ Time to critical = (Current storage - Minimum safe level) / Demand rate per hour
 - Demand: 1,100 people x 55 LPCD = 60.5 kL/day = 2.52 kL/hour
 - **Time to critical = (80 - 20) / 2.52 = ~24 hours**
 
-This one formula turns "Pump is OFF" into "you have 24 hours." The system computes this for every tank simultaneously, then propagates which villages and facilities run dry at which hours -- for any failure, instantly.
+This one formula turns "Pump is OFF" into "you have 24 hours." The system computes this for every tank simultaneously, then propagates which villages and facilities run dry at which hours -- for any failure scenario, automatically.
 
 ---
 
@@ -233,7 +206,7 @@ Open http://localhost:3000 in your browser. The map requires an internet connect
 
 ### Step 1 -- Open the Command Centre
 
-The engineer opens JalRakshak and sees the **Chakur Block, Latur** scheme preloaded: 25 assets, 34 dependency links, 8,140 people served under JJM. They click **Chakur Block** to load the digital twin.
+The engineer opens SWIM and sees the **Chakur Block, Latur** scheme preloaded: 25 assets, 34 dependency links, 8,140 people served under JJM. They click **Chakur Block** to load the digital twin.
 
 ---
 
@@ -249,7 +222,7 @@ A full-screen interactive map loads at real GPS coordinates. Every asset is pinn
 - PHCs and Anganwadis -- critical facilities at the end of the chain
 - Villages -- the demand nodes
 
-Clicking any asset opens the **Asset Inspector panel**: criticality score, connected neighbours, and a provenance badge showing whether the dependency was confirmed from official data or inferred by the system.
+Clicking any asset opens the **Asset Inspector panel**: criticality score, connected neighbours, and a provenance badge showing whether the dependency was confirmed from official data or inferred by the system (with confidence %). The two highest-risk assets -- borewell BW1 (sole source) and pump house P1 (no backup) -- are pre-highlighted in red callouts.
 
 ---
 
@@ -260,7 +233,7 @@ The system surfaces 2 dependency edges it is uncertain about:
 - **P1 -> T1** (Main pump powered by Feeder 1 -- inferred from proximity, 68% confident)
 - **OHT2 -> P2** (South tank backup supply -- may actually be P1, 71% confident)
 
-For each, the engineer sees the confidence level, the reason for uncertainty, and a dropdown to either Confirm or Correct the assignment. When the engineer corrects an edge, the **System Calibration Score** updates immediately, and the inference engine learns.
+For each, the engineer sees the confidence level, the reason for uncertainty, and a dropdown to either Confirm or Correct the assignment. When the engineer corrects an edge, the **System Calibration Score** increases. The "Introduce Failure" button unlocks only after both are reviewed.
 
 ---
 
@@ -319,9 +292,9 @@ The engineer clicks **Generate MJP Report** -- a formatted summary ready for bud
 
 ## What This Is Not
 
-- Not predictive maintenance. JalRakshak does not forecast when a pump will spontaneously fail. It simulates consequences once a failure is introduced.
+- Not predictive maintenance. SWIM does not forecast when a pump will spontaneously fail. It simulates consequences once a failure is introduced.
 - Not a real-time SCADA system. It does not poll live sensor feeds. It runs fast, deterministic simulations on scheme data that already exists.
-- Not a monitoring dashboard. JJM IMIS already does monitoring. JalRakshak is the consequence layer on top.
+- Not a monitoring dashboard. JJM IMIS already does monitoring. SWIM is the consequence layer on top.
 
 ---
 

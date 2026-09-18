@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "VARUNA — Infrastructure Resilience Digital Twin",
+  title: "SWIM — Water Resilience Digital Twin",
   description:
-    "A cascading failure simulator for Indian critical infrastructure. Model roads, bridges, hospitals, substations, and habitations as an interdependent network.",
+    "A cascading failure simulator for rural water infrastructure. Model borewells, pumps, overhead tanks, and distribution zones as an interdependent network under JJM.",
   themeColor: "#070b12",
 };
 
