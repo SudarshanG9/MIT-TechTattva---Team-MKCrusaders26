@@ -65,6 +65,58 @@ A bridge failure is felt immediately. A pump failure is not -- the tank buys tim
 
 ---
 
+## System Flow Illustration
+
+The following screenshots show the full 7-step user flow of the SWIM prototype using live data from the Chakur Block, Latur scheme.
+
+**Step 1 — Command Centre: Scheme Selection**
+
+![Step 1 – Landing & Scheme Selection](src/github%20system%20flow/Screenshot%202026-09-18%20at%202.23.57%20PM.png)
+
+---
+
+**Step 2 — Live Network Map**
+
+![Step 2 – Interactive Leaflet map of all 25 scheme assets](src/github%20system%20flow/Screenshot%202026-09-18%20at%202.24.09%20PM.png)
+
+---
+
+**Step 3 — Dependency Review**
+
+![Step 3 – Inferred pump-to-feeder dependencies flagged for correction](src/github%20system%20flow/Screenshot%202026-09-18%20at%202.24.28%20PM.png)
+
+---
+
+**Step 4 — Failure Scenario Selection**
+
+![Step 4 – Choose a failure: Feeder trip, Pipeline burst, Source depletion, or Worst case](src/github%20system%20flow/Screenshot%202026-09-18%20at%202.24.39%20PM.png)
+
+---
+
+**Step 5 — Cascade Animation**
+
+![Step 5 – Round-by-round cascade with live map colouring](src/github%20system%20flow/Screenshot%202026-09-18%20at%202.24.51%20PM.png)
+
+---
+
+**Step 5 (continued) — Cascade in Progress**
+
+![Step 5 – Cascade propagating through the network](src/github%20system%20flow/Screenshot%202026-09-18%20at%202.24.56%20PM.png)
+
+---
+
+**Step 6 — Impact Dashboard & Criticality Ranking**
+
+![Step 6 – Population without water, hours to critical, ranked criticality table](src/github%20system%20flow/Screenshot%202026-09-18%20at%202.25.03%20PM.png)
+
+---
+
+**Step 7 — Scenario Comparison & Planning Report**
+
+![Step 7 – Side-by-side scenario comparison and intervention recommendation](src/github%20system%20flow/Screenshot%202026-09-18%20at%202.25.14%20PM.png)
+
+---
+
 ## Architecture
 
 ### 11-Stage Processing Pipeline
