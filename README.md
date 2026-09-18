@@ -7,7 +7,7 @@
 
 ## The One-Sentence Pitch
 
-JalRakshak answers the question no existing water monitoring system can: **"Pump P1 is OFF -- what does that mean for the 6,400 people downstream, how many hours do they have before their taps run dry, and what should a block engineer fix first with a Rs.10 lakh O&M budget?"**
+JalRakshak answers the question no existing water monitoring system can: **"Pump P1 is OFF -- what does that mean for the 6,400 people downstream, how many hours do they have before their taps run dry?"**
 
 ---
 
@@ -17,7 +17,7 @@ India's Jal Jeevan Mission has geo-tagged **~6 crore rural water assets** across
 
 **What they cannot see is what comes next.**
 
-When a power feeder trips and a pump stops, the overhead tank keeps feeding water downstream -- draining silently. A PHC might lose supply in 4 hours. A village with no alternate source might go 3 days without water. A school might close. This is not visible from any existing dashboard.
+When a power feeder trips and a pump stops, the overhead tank keeps feeding water downstream -- draining silently. A PHC might lose supply in 4 hours. A village with no alternate source might go 3 days without water.
 
 The standard response today is reactive: someone's tap runs dry, they file a complaint, the engineer dispatches a repair team. **The consequence has already happened.**
 
@@ -36,7 +36,7 @@ The missing piece was never data. It was the **dependency model** sitting on top
 | Census population-per-habitation data | Which villages, PHCs, and schools lose water first |
 | Block engineers who know their schemes | A tool that converts their local knowledge into ranked priorities |
 
-JalRakshak builds that missing dependency layer -- a typed graph of how every asset in a water scheme depends on every other -- and runs a cascade simulation on top of it. **No SCADA sensors. No IoT retrofits. No new data collection.** Just a model built from what JJM already has.
+JalRakshak builds that missing dependency layer -- a typed graph of how every asset in a water scheme depends on every other -- and runs a cascade simulation on top of it. **No SCADA sensors. No IoT retrofit needed.**
 
 ---
 
@@ -59,9 +59,35 @@ You select a failure -- a power feeder trips, a pump breaks down, a borewell yie
 
 ### The Core Technical Insight
 
-A bridge failure is felt immediately. A pump failure is not -- the tank buys time. **That buffer is exactly what this system computes, and it is the single sentence no other water dashboard currently produces.**
+A bridge failure is felt immediately. A pump failure is not -- the tank buys time. **That buffer is exactly what this system computes, and it is the single sentence no other water dashboard currently answers.**
 
-> "Pump P1 is off. OHT1 will reach critical storage level in **6 hours**. Village Chakur (2,100 people) and PHC Chakur (serving 6,400) will lose water supply. No redundant pump exists. Intervention priority: **CRITICAL**."
+> "Pump P1 is off. OHT1 will reach critical storage level in **6 hours**. Village Chakur (2,100 people) and PHC Chakur (serving 6,400) will lose water supply. No redundant pump exists. Intervention priority: Install standby pump -- Rs.3-7 Lakh."
+
+---
+
+## System Overview
+
+JalRakshak provides a complete digital twin of rural water infrastructure -- from data ingestion through cascade simulation to intervention planning. Here's the system in action:
+
+### Landing & Scheme Selection
+Engineers start by selecting their water scheme. The system loads the full network graph with all asset dependencies precomputed.
+
+![Landing and Scheme Selection](image1)
+
+### Interactive Network Map & Asset Inspector
+Every asset is pinned at real GPS coordinates. Clicking any node opens the Asset Inspector: criticality score, connected neighbours, and data provenance. Dependencies flagged as uncertain are highlighted for human correction.
+
+![Interactive Network Map](image2)
+
+### Dependency Review & Calibration
+The system surfaces inferred pump-to-feeder dependencies with confidence scores. Engineers confirm or correct each edge. The Calibration Score improves with every correction, making the digital twin progressively more accurate.
+
+![Dependency Review Interface](image3)
+
+### Failure Scenario Selection & Cascade Simulation
+Choose a failure type (feeder trip, pipeline burst, source depletion) and watch the cascade propagate round-by-round on the live map. Node colours shift from green → amber → red as assets move through stressed → critical → failed states.
+
+![Failure Scenario Cards](image4)
 
 ---
 
@@ -93,7 +119,7 @@ A bridge failure is felt immediately. A pump failure is not -- the tank buys tim
 
 ## Prototype -- What The Current Demo Shows
 
-> **Important note:** The current prototype is a **hardcoded front-end demo** built for MIT Manipal Tech Tatva 2026. All data (nodes, edges, scenarios, cascade timelines) is pre-loaded from static TypeScript files representing the **Chakur Block, Latur District, Maharashtra** JJM water scheme. There is no live API, no database, and no real-time sensor feed. The prototype demonstrates the full 7-step user flow with realistic data to validate the concept and interface design. A production version would connect to the JJM IMIS API and a live dependency inference engine.
+> **Important note:** The current prototype is a **hardcoded front-end demo** built for MIT Manipal Tech Tatva 2026. All data (nodes, edges, scenarios, cascade timelines) is pre-loaded from static TypeScript files. The production version will fetch live data from APIs and databases.
 
 | Step | Screen | What it demonstrates |
 |---|---|---|
@@ -184,7 +210,7 @@ Time to critical = (Current storage - Minimum safe level) / Demand rate per hour
 - Demand: 1,100 people x 55 LPCD = 60.5 kL/day = 2.52 kL/hour
 - **Time to critical = (80 - 20) / 2.52 = ~24 hours**
 
-This one formula turns "Pump is OFF" into "you have 24 hours." The system computes this for every tank simultaneously, then propagates which villages and facilities run dry at which hours -- for any failure scenario, automatically.
+This one formula turns "Pump is OFF" into "you have 24 hours." The system computes this for every tank simultaneously, then propagates which villages and facilities run dry at which hours -- for any failure, instantly.
 
 ---
 
@@ -223,7 +249,7 @@ A full-screen interactive map loads at real GPS coordinates. Every asset is pinn
 - PHCs and Anganwadis -- critical facilities at the end of the chain
 - Villages -- the demand nodes
 
-Clicking any asset opens the **Asset Inspector panel**: criticality score, connected neighbours, and a provenance badge showing whether the dependency was confirmed from official data or inferred by the system (with confidence %). The two highest-risk assets -- borewell BW1 (sole source) and pump house P1 (no backup) -- are pre-highlighted in red callouts.
+Clicking any asset opens the **Asset Inspector panel**: criticality score, connected neighbours, and a provenance badge showing whether the dependency was confirmed from official data or inferred by the system.
 
 ---
 
@@ -234,7 +260,7 @@ The system surfaces 2 dependency edges it is uncertain about:
 - **P1 -> T1** (Main pump powered by Feeder 1 -- inferred from proximity, 68% confident)
 - **OHT2 -> P2** (South tank backup supply -- may actually be P1, 71% confident)
 
-For each, the engineer sees the confidence level, the reason for uncertainty, and a dropdown to either Confirm or Correct the assignment. When the engineer corrects an edge, the **System Calibration Score** increases. The "Introduce Failure" button unlocks only after both are reviewed.
+For each, the engineer sees the confidence level, the reason for uncertainty, and a dropdown to either Confirm or Correct the assignment. When the engineer corrects an edge, the **System Calibration Score** updates immediately, and the inference engine learns.
 
 ---
 
@@ -293,7 +319,7 @@ The engineer clicks **Generate MJP Report** -- a formatted summary ready for bud
 
 ## What This Is Not
 
-- Not predictive maintenance. SWIM does not forecast when a pump will spontaneously fail. It simulates consequences once a failure is introduced.
+- Not predictive maintenance. JalRakshak does not forecast when a pump will spontaneously fail. It simulates consequences once a failure is introduced.
 - Not a real-time SCADA system. It does not poll live sensor feeds. It runs fast, deterministic simulations on scheme data that already exists.
 - Not a monitoring dashboard. JJM IMIS already does monitoring. JalRakshak is the consequence layer on top.
 
