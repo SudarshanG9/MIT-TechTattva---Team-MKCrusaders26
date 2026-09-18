@@ -293,7 +293,7 @@ The engineer clicks **Generate MJP Report** -- a formatted summary ready for bud
 
 ## What This Is Not
 
-- Not predictive maintenance. JalRakshak does not forecast when a pump will spontaneously fail. It simulates consequences once a failure is introduced.
+- Not predictive maintenance. SWIM does not forecast when a pump will spontaneously fail. It simulates consequences once a failure is introduced.
 - Not a real-time SCADA system. It does not poll live sensor feeds. It runs fast, deterministic simulations on scheme data that already exists.
 - Not a monitoring dashboard. JJM IMIS already does monitoring. JalRakshak is the consequence layer on top.
 
